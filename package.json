@@ -1,0 +1,20 @@
+{
+  "name": "canopener-ui",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "lab": "pio run --target=upload && pnpm lab:js",
+    "lab:js": "tsx lab/test.jsx"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "module",
+  "license": "ISC",
+  "packageManager": "pnpm@10.12.1",
+  "dependencies": {
+    "canopener": "link:../canopener"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  }
+}
