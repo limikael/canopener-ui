@@ -1,4 +1,4 @@
-import {openSlcanBus, RemoteDevice} from "canopener";
+import {openSlcanBus, RemoteDevice, MasterDevice} from "canopener";
 import {createUiDevice, useEncoder, useEncoderButton, useClampedEncoder,
 		useRef, h, Fragment, Menu, useBack, useEncoderDelta} from "../api/exports.js";
 
@@ -26,7 +26,7 @@ function ObjectEditor({name, title, dev, index, subIndex, min, max, step}) {
 }
 
 function App({motor}) {
-	let targetEntry=motor.entry(0x607A,0x00);
+	//let targetEntry=motor.entry(0x607A,0x00);
 
 	return (
 		<Menu title="Flatpak">
@@ -41,10 +41,10 @@ function App({motor}) {
 			<Menu title="Status">
 			</Menu>
 			<Menu title="Test">
-				<ObjectEditor dev={motor} index={0x607A} subIndex={0x00} 
+				{/*<ObjectEditor dev={motor} index={0x607A} subIndex={0x00} 
 						name={"Motor"}
 						title={"Motor: "+targetEntry.get()} 
-						min={0} max={10000} step={100}/>
+						min={0} max={10000} step={100}/>*/}
 				<Menu title="Jog Rail Axis"/>
 				<Menu title="Jog Vert. Axis"/>
 			</Menu>
@@ -56,8 +56,13 @@ function App({motor}) {
 	);
 }
 
-let bus=await openSlcanBus({path: "/dev/ttyACM0", baudRate: 115200});
-await new Promise(r=>setTimeout(r,250));
+//let bus=await openSlcanBus({path: "/dev/ttyACM0", baudRate: 115200});
+let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:D0", baudRate: 115200}); // ui
+let masterDevice=new MasterDevice({bus});
+
+//let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:E4", baudRate: 115200}); // motor
+
+/*await new Promise(r=>setTimeout(r,250));
 
 let motor=new RemoteDevice({bus, nodeId: 5});
 let targetPosition=motor.entry(0x607A,0x00).setType("int32");
@@ -74,8 +79,10 @@ await maxAccel.set(10000);
 await maxDecel.set(10000);
 await maxVel.set(16000);
 
-await targetPosition.set(0);
+await targetPosition.set(0);*/
 
-let ui=await createUiDevice({bus, nodeId: 6, element: <App motor={motor}/>});
+let motor=null;
+
+let ui=await createUiDevice({masterDevice, nodeId: 6, element: <App motor={motor}/>});
 
 console.log("Started...");

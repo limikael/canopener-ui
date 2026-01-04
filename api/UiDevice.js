@@ -1,5 +1,5 @@
 import ReactiveTui, {useRef} from "./ReactiveTui.js";
-import {RemoteDevice} from "canopener";
+import {RemoteDevice, awaitEvent} from "canopener";
 import {ResolvablePromise} from "./js-util.js";
 
 function useUiDevice() {
@@ -68,12 +68,12 @@ export function useEncoderButton(fn) {
 }
 
 export default class UiDevice {
-	constructor({bus, nodeId, element}) {
+	constructor({nodeId, element}) {
 		this.reactiveTui=new ReactiveTui(element);
 		this.reactiveTui.on("refresh",()=>{
 			this.refreshPromise.resolve();
 		});
-		this.remoteDevice=new RemoteDevice({bus, nodeId});
+		this.remoteDevice=new RemoteDevice({nodeId});
 
 		for (let row=0; row<4; row++)
 			for (let chunk=0; chunk<5; chunk++)
@@ -147,8 +147,11 @@ export default class UiDevice {
 	}
 }
 
-export async function createUiDevice({bus, nodeId, element}) {
-	let uiDevice=new UiDevice({bus,nodeId,element});
+export async function createUiDevice({masterDevice, nodeId, element}) {
+	let uiDevice=new UiDevice({nodeId,element});
+
+	masterDevice.addDevice(uiDevice.remoteDevice);
+	await uiDevice.remoteDevice.awaitState("operational");
 
 	await uiDevice.init();
 
