@@ -5,7 +5,8 @@
   "scripts": {
     "lab": "pio run --target=upload && pnpm lab:js",
     "lab:js": "esbuild --platform=node --format=esm --bundle --outfile=target/test.js --jsx=automatic --jsx-import-source=canopener --external:canopener lab/test.jsx && node target/test.js",
-    "lab:pea": "peabrain deploy lab/peatest.jsx --port /dev/ttyESP-50:78:7D:91:F1:F0"
+    "lab:pea": "peabrain deploy lab/test.jsx --port /dev/ttyESP-50:78:7D:91:F1:F0",
+    "flash": "pio run --target=upload"
   },
   "keywords": [],
   "author": "",

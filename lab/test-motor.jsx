@@ -1,7 +1,6 @@
-import {RemoteDevice, MasterDevice} from "canopener";
-import * as canopener from "canopener";
+import {openSlcanBus, RemoteDevice, MasterDevice} from "canopener";
 import {createUiDevice, useEncoder, useEncoderButton, useClampedEncoder,
-		useRef, Menu, useBack, useEncoderDelta} from "../api/exports.js";
+		useRef, h, Fragment, Menu, useBack, useEncoderDelta} from "../api/exports.js";
 
 function ObjectEditor({name, title, dev, index, subIndex, min, max, step}) {
 	let back=useBack();
@@ -58,21 +57,38 @@ function App({motor}) {
 }
 
 async function run() {
-	let bus;
-	if (global.canBus) {
-		bus=global.canBus;
-	}
-
-	else {
-		let co=canopener;
-		bus=await co.openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:D0", baudRate: 115200}); // ui
-	}
-
+	//let bus=await openSlcanBus({path: "/dev/ttyACM0", baudRate: 115200});
+	//let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:E4", baudRate: 115200}); // motor
+	let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:D0", baudRate: 115200}); // ui
+	//let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:91:F1:F0", baudRate: 115200}); // brain
 	let masterDevice=new MasterDevice({bus});
 
+	//let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:E4", baudRate: 115200}); // motor
+
+	/*await new Promise(r=>setTimeout(r,250));
+
+	let motor=new RemoteDevice({bus, nodeId: 5});
+	let targetPosition=motor.entry(0x607A,0x00).setType("int32");
+	let actualPosition=motor.entry(0x6064,0x00).setType("int32");
+
+	let maxVel=motor.entry(0x6081,0x00).setType("int32");
+	let maxAccel=motor.entry(0x6083,0x00).setType("int32");
+	let maxDecel=motor.entry(0x6084,0x00).setType("int32");
+	let control=motor.entry(0x6040,0x00).setType("uint16");
+
+	//await control.set(0x0);
+	await control.set(0x0f);
+	await maxAccel.set(10000);
+	await maxDecel.set(10000);
+	await maxVel.set(16000);
+
+	await targetPosition.set(0);*/
+
 	let motor=null;
+
 	let ui=await createUiDevice({masterDevice, nodeId: 6, element: <App motor={motor}/>});
-	console.log("UI Started...");
+
+	console.log("Started...");
 }
 
 run();

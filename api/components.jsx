@@ -1,4 +1,4 @@
-import {useRef, useClampedEncoder, useEncoderButton, h, Fragment, useState,
+import {useRef, useClampedEncoder, useEncoderButton, useState,
 		createContext, useContext} from "./exports.js";
 
 let BackContext=createContext();

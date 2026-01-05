@@ -35,26 +35,9 @@ function App({motor}) {
 
 async function run() {
 	let masterDevice=new MasterDevice({bus: global.canBus});
-
-	/*let dev=new RemoteDevice({nodeId: 6});
-	dev.on("stateChange",()=>{
-		console.log("device state: "+dev.getState());
-	});
-
-	masterDevice.addDevice(dev);
-
-	await dev.awaitState("operational");
-
-	console.log("operational now...");*/
-
-
 	let motor=null;
-
 	let ui=await createUiDevice({masterDevice, nodeId: 6, element: <App motor={motor}/>});
-
-	console.log("Started, UI operational...");
+	console.log("**** UI operational...");
 }
-
-console.log("********* peaui");
 
 run();

@@ -85,6 +85,8 @@ export default class UiDevice {
 
 		this.encoderEntry.on("change",()=>this.refreshPromise.resolve());
 		this.buttonCountEntry.on("change",()=>this.refreshPromise.resolve());
+
+		//this.encoderEntry.on("change",()=>console.log("encoder change..."));
 	}
 
 	chunkEntry(row, chunk) {
@@ -109,11 +111,13 @@ export default class UiDevice {
 		//this.encoderEntry.subscribe({interval:100});
 		//this.buttonCountEntry.subscribe({interval:100});
 
-		await new Promise(r=>setTimeout(r,100));
+		//await new Promise(r=>setTimeout(r,100));
 		this.encoderEntry.subscribe({pdoChannel:1});
-		await new Promise(r=>setTimeout(r,100));
+		//await new Promise(r=>setTimeout(r,100));
 		this.buttonCountEntry.subscribe({pdoChannel:2});
-		await new Promise(r=>setTimeout(r,100));
+		//await new Promise(r=>setTimeout(r,100));
+
+		await this.remoteDevice.flush();
 	}
 
 	async setLines(lines) {
@@ -134,10 +138,12 @@ export default class UiDevice {
 
 				if (data!=this.chunkEntry(lineIndex,chunkIndex).get()) {
 					//console.log("update "+lineIndex+" "+chunkIndex+" "+data);
-					await this.chunkEntry(lineIndex,chunkIndex).set(data);
+					this.chunkEntry(lineIndex,chunkIndex).set(data);
 				}
 			}
 		}
+
+		await this.remoteDevice.flush();
 	}
 
 	async refresh() {
@@ -149,7 +155,9 @@ export default class UiDevice {
 		let content=unflatContent.flat(Infinity);
 		//console.log(content);
 
+		//console.log("setting lines");
 		await this.setLines(content);
+		//console.log("lines set");
 	}
 
 	async run() {
@@ -163,7 +171,7 @@ export default class UiDevice {
 export async function createUiDevice({masterDevice, nodeId, element}) {
 	let uiDevice=new UiDevice({nodeId,element});
 	masterDevice.addDevice(uiDevice.remoteDevice);
-	await uiDevice.remoteDevice.awaitState("operational");
+	//await uiDevice.remoteDevice.awaitState("operational");
 	await uiDevice.init();
 
 	uiDevice.run();

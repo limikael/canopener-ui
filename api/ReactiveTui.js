@@ -42,7 +42,7 @@ function useRenderInstance() {
 	return ReactiveTui.renderInstance;
 }
 
-export function h(type, props={}, ...children) {
+/*export function h(type, props={}, ...children) {
 	children=children.flat();
 	return {type, props, children};
 }
@@ -51,7 +51,7 @@ export function Fragment(props) {
 	//console.log(props);
 
 	return props.children;
-}
+}*/
 
 export function useContext(context) {
 	let reactiveTui=useRenderInstance();
