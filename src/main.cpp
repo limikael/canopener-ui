@@ -38,9 +38,17 @@ void setup() {
 void loop() {
     dev.loop();
 
-    for (int row=0; row<4; row++)
-        for (int chunk=0; chunk<5; chunk++)
-            screen.setChunk(row,chunk,dev.at(0x7000+row,chunk+1).get<uint32_t>());
+    if (dev.getState()==Device::OPERATIONAL) {
+        for (int row=0; row<4; row++)
+            for (int chunk=0; chunk<5; chunk++)
+                screen.setChunk(row,chunk,dev.at(0x7000+row,chunk+1).get<uint32_t>());
+    }
+
+    else {
+        for (int row=0; row<4; row++)
+            for (int chunk=0; chunk<5; chunk++)
+                screen.setChunk(row,chunk,0x202d2d20);
+    }
 
     dev.at(0x5f00,0).set<uint8_t>(encoder.getValue());
     dev.at(0x5f01,0).set<bool>(digitalRead(10));

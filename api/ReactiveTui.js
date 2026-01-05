@@ -1,4 +1,4 @@
-import EventEmitter from "node:events";
+import {EventEmitter} from "canopener";
 
 export function useState(initial) {
 	let reactiveTui=useRenderInstance();

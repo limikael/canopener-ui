@@ -80,8 +80,8 @@ export default class UiDevice {
 				this.chunkEntry(row,chunk).setType("uint32");
 
 		this.refreshPromise=new ResolvablePromise();
-		this.encoderEntry=this.remoteDevice.entry(0x5f00,0).setType("uint8").subscribe({interval: 100});
-		this.buttonCountEntry=this.remoteDevice.entry(0x5f02,0).setType("uint8").subscribe({interval: 100});
+		this.encoderEntry=this.remoteDevice.entry(0x5f00,0).setType("uint8");//subscribe({interval: 100});
+		this.buttonCountEntry=this.remoteDevice.entry(0x5f02,0).setType("uint8");//.subscribe({interval: 100});
 
 		this.encoderEntry.on("change",()=>this.refreshPromise.resolve());
 		this.buttonCountEntry.on("change",()=>this.refreshPromise.resolve());
@@ -94,15 +94,26 @@ export default class UiDevice {
 	async init() {
 		//let promises=[];
 
-		for (let row=0; row<4; row++)
-			for (let chunk=0; chunk<5; chunk++)
-				await this.chunkEntry(row,chunk).set(0x20202020);
-				//promises.push(this.chunkEntry(row,chunk).set(0x20202020));
+		for (let row=0; row<4; row++) {
+			for (let chunk=0; chunk<5; chunk++) {
+				//console.log("row: "+row+" chunk: "+chunk);
+				//this.chunkEntry(row,chunk).set(0x41424344);
 
-		//await Promise.all(promises);
+				//await this.chunkEntry(row,chunk).set(0x20202020);
+			}
+		}
 
-		await this.encoderEntry.refresh();
-		await this.buttonCountEntry.refresh();
+		/*await this.encoderEntry.refresh();
+		await this.buttonCountEntry.refresh();*/
+
+		//this.encoderEntry.subscribe({interval:100});
+		//this.buttonCountEntry.subscribe({interval:100});
+
+		await new Promise(r=>setTimeout(r,100));
+		this.encoderEntry.subscribe({pdoChannel:1});
+		await new Promise(r=>setTimeout(r,100));
+		this.buttonCountEntry.subscribe({pdoChannel:2});
+		await new Promise(r=>setTimeout(r,100));
 	}
 
 	async setLines(lines) {
@@ -130,6 +141,8 @@ export default class UiDevice {
 	}
 
 	async refresh() {
+		//console.log("refresh, enc="+this.encoderEntry.get()+" btn="+this.buttonCountEntry.get());
+
 		this.refreshPromise=new ResolvablePromise();
 		UiDevice.instance=this;
 		let unflatContent=this.reactiveTui.render();
@@ -149,10 +162,8 @@ export default class UiDevice {
 
 export async function createUiDevice({masterDevice, nodeId, element}) {
 	let uiDevice=new UiDevice({nodeId,element});
-
 	masterDevice.addDevice(uiDevice.remoteDevice);
 	await uiDevice.remoteDevice.awaitState("operational");
-
 	await uiDevice.init();
 
 	uiDevice.run();

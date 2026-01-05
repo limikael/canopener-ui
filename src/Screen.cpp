@@ -15,7 +15,7 @@ void Screen::begin() {
     lcd.backlight();
     lcd.clear();
     lcd.setCursor(0,0);
-    lcd.print("Starting...");
+    //lcd.print("Starting...");
 }
 
 void Screen::setChunk(int row, int chunk, uint32_t data) {
