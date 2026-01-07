@@ -1,6 +1,6 @@
 import {openSlcanBus, RemoteDevice, MasterDevice} from "canopener";
 import {createUiDevice, useEncoder, useEncoderButton, useClampedEncoder,
-		useRef, h, Fragment, Menu, useBack, useEncoderDelta} from "../api/exports.js";
+		useRef, Menu, useBack, useEncoderDelta} from "../api/exports.js";
 
 function ObjectEditor({name, title, dev, index, subIndex, min, max, step}) {
 	let back=useBack();
@@ -26,7 +26,7 @@ function ObjectEditor({name, title, dev, index, subIndex, min, max, step}) {
 }
 
 function App({motor}) {
-	//let targetEntry=motor.entry(0x607A,0x00);
+	let targetEntry=motor.entry(0x607A,0x00);
 
 	return (
 		<Menu title="Flatpak">
@@ -41,10 +41,10 @@ function App({motor}) {
 			<Menu title="Status">
 			</Menu>
 			<Menu title="Test">
-				{/*<ObjectEditor dev={motor} index={0x607A} subIndex={0x00} 
+				<ObjectEditor dev={motor} index={0x607A} subIndex={0x00} 
 						name={"Motor"}
 						title={"Motor: "+targetEntry.get()} 
-						min={0} max={10000} step={100}/>*/}
+						min={0} max={10000} step={100}/>
 				<Menu title="Jog Rail Axis"/>
 				<Menu title="Jog Vert. Axis"/>
 			</Menu>
@@ -61,13 +61,13 @@ async function run() {
 	//let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:E4", baudRate: 115200}); // motor
 	let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:D0", baudRate: 115200}); // ui
 	//let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:91:F1:F0", baudRate: 115200}); // brain
+
+
 	let masterDevice=new MasterDevice({bus});
 
-	//let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:E4", baudRate: 115200}); // motor
+	let motor=new RemoteDevice({nodeId: 5});
+	masterDevice.addDevice(motor);
 
-	/*await new Promise(r=>setTimeout(r,250));
-
-	let motor=new RemoteDevice({bus, nodeId: 5});
 	let targetPosition=motor.entry(0x607A,0x00).setType("int32");
 	let actualPosition=motor.entry(0x6064,0x00).setType("int32");
 
@@ -76,19 +76,17 @@ async function run() {
 	let maxDecel=motor.entry(0x6084,0x00).setType("int32");
 	let control=motor.entry(0x6040,0x00).setType("uint16");
 
-	//await control.set(0x0);
-	await control.set(0x0f);
-	await maxAccel.set(10000);
-	await maxDecel.set(10000);
-	await maxVel.set(16000);
-
-	await targetPosition.set(0);*/
-
-	let motor=null;
+	//control.set(0x0);
+	control.set(0x0f);
+	maxAccel.set(10000);
+	maxDecel.set(10000);
+	maxVel.set(16000);
+	targetPosition.set(0);
+	await motor.flush();
 
 	let ui=await createUiDevice({masterDevice, nodeId: 6, element: <App motor={motor}/>});
 
-	console.log("Started...");
+	console.log("Motor UI Started...");
 }
 
 run();
