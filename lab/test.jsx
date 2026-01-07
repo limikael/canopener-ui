@@ -3,32 +3,7 @@ import * as canopener from "canopener";
 import {createUiDevice, useEncoder, useEncoderButton, useClampedEncoder,
 		useRef, Menu, useBack, useEncoderDelta} from "../api/exports.js";
 
-function ObjectEditor({name, title, dev, index, subIndex, min, max, step}) {
-	let back=useBack();
-	useEncoderButton(()=>back());
-	let delta=useEncoderDelta();
-	let entry=dev.entry(index,subIndex);
-
-	if (!step)
-		step=1;
-
-	if (delta) {
-		let v=entry.get()+delta*step;
-		if (v<min)
-			v=min;
-
-		if (v>max)
-			v=max;
-
-		entry.set(v);
-	}
-
-	return (["",name.padStart(9)+": "+entry.get(),"","      [ Back ]      "]);
-}
-
-function App({motor}) {
-	//let targetEntry=motor.entry(0x607A,0x00);
-
+function App() {
 	return (
 		<Menu title="Flatpak">
 			<Menu title="Start Que Job">
@@ -42,10 +17,6 @@ function App({motor}) {
 			<Menu title="Status">
 			</Menu>
 			<Menu title="Test">
-				{/*<ObjectEditor dev={motor} index={0x607A} subIndex={0x00} 
-						name={"Motor"}
-						title={"Motor: "+targetEntry.get()} 
-						min={0} max={10000} step={100}/>*/}
 				<Menu title="Jog Rail Axis"/>
 				<Menu title="Jog Vert. Axis"/>
 			</Menu>
@@ -69,9 +40,12 @@ async function run() {
 	}
 
 	let masterDevice=new MasterDevice({bus});
+	let uiDevice=masterDevice.createRemoteDevice(6);
+	await uiDevice.awaitState("operational");
 
-	let motor=null;
-	let ui=await createUiDevice({masterDevice, nodeId: 6, element: <App motor={motor}/>});
+	let ui=createUiDevice(<App />);
+	await ui.setRemoteDevice(uiDevice);
+
 	console.log("UI Started...");
 }
 

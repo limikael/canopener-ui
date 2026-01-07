@@ -82,7 +82,7 @@ export function createContext() {
 	return context;
 }
 
-export default class ReactiveTui extends EventEmitter {
+export class ReactiveTui extends EventEmitter {
 	static renderInstance;
 
 	constructor(topComponent) {
@@ -127,4 +127,8 @@ export default class ReactiveTui extends EventEmitter {
 
 		return content;
 	}
+}
+
+export function createReactiveTui(element) {
+	return new ReactiveTui(element);
 }

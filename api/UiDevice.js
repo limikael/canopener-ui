@@ -1,4 +1,4 @@
-import ReactiveTui, {useRef} from "./ReactiveTui.js";
+import {createReactiveTui, useRef} from "./reactive-tui.js";
 import {RemoteDevice, awaitEvent} from "canopener";
 import {ResolvablePromise} from "./js-util.js";
 
@@ -68,12 +68,36 @@ export function useEncoderButton(fn) {
 }
 
 export default class UiDevice {
-	constructor({nodeId, element}) {
-		this.reactiveTui=new ReactiveTui(element);
+	constructor(element) {
+		this.reactiveTui=createReactiveTui(element);
 		this.reactiveTui.on("refresh",()=>{
-			this.refreshPromise.resolve();
+			if (this.refreshPromise)
+				this.refreshPromise.resolve();
 		});
-		this.remoteDevice=new RemoteDevice({nodeId});
+
+		/*this.remoteDevice=new RemoteDevice({nodeId});
+
+		for (let row=0; row<4; row++)
+			for (let chunk=0; chunk<5; chunk++)
+				this.chunkEntry(row,chunk).setType("uint32");
+
+		this.refreshPromise=new ResolvablePromise();
+		this.encoderEntry=this.remoteDevice.entry(0x5f00,0).setType("uint8");//subscribe({interval: 100});
+		this.buttonCountEntry=this.remoteDevice.entry(0x5f02,0).setType("uint8");//.subscribe({interval: 100});
+
+		this.encoderEntry.on("change",()=>this.refreshPromise.resolve());
+		this.buttonCountEntry.on("change",()=>this.refreshPromise.resolve());*/
+
+		//this.encoderEntry.on("change",()=>console.log("encoder change..."));
+	}
+
+	async setRemoteDevice(remoteDevice) {
+		if (this.remoteDevice)
+			throw new Error("Can only set remote device once! (WIP)");
+
+		this.remoteDevice=remoteDevice;
+		if (this.remoteDevice.getState()!="operational")
+			throw new Error("not operational!!!");
 
 		for (let row=0; row<4; row++)
 			for (let chunk=0; chunk<5; chunk++)
@@ -86,14 +110,28 @@ export default class UiDevice {
 		this.encoderEntry.on("change",()=>this.refreshPromise.resolve());
 		this.buttonCountEntry.on("change",()=>this.refreshPromise.resolve());
 
-		//this.encoderEntry.on("change",()=>console.log("encoder change..."));
+		this.encoderEntry.subscribe({pdoChannel:1});
+		this.buttonCountEntry.subscribe({pdoChannel:2});
+
+		await this.remoteDevice.flush();
+		await this.refresh();
+
+		//await new Promise(r=>setTimeout(r,100));
+
+		//this.remoteDevice.on("stateChange",this.handleStateChange);
+
+		this.run();
 	}
+
+	/*handleStateChange=()=>{
+		console.log("ui device state="+this.remoteDevice.getState());
+	}*/
 
 	chunkEntry(row, chunk) {
 		return this.remoteDevice.entry(0x7000+row,chunk+1);
 	}
 
-	async init() {
+	/*async init() {
 		//let promises=[];
 
 		for (let row=0; row<4; row++) {
@@ -105,20 +143,11 @@ export default class UiDevice {
 			}
 		}
 
-		/*await this.encoderEntry.refresh();
-		await this.buttonCountEntry.refresh();*/
-
-		//this.encoderEntry.subscribe({interval:100});
-		//this.buttonCountEntry.subscribe({interval:100});
-
-		//await new Promise(r=>setTimeout(r,100));
 		this.encoderEntry.subscribe({pdoChannel:1});
-		//await new Promise(r=>setTimeout(r,100));
 		this.buttonCountEntry.subscribe({pdoChannel:2});
-		//await new Promise(r=>setTimeout(r,100));
 
 		await this.remoteDevice.flush();
-	}
+	}*/
 
 	async setLines(lines) {
 		//console.log(lines);
@@ -155,26 +184,20 @@ export default class UiDevice {
 		let content=unflatContent.flat(Infinity);
 		//console.log(content);
 
-		//console.log("setting lines");
 		await this.setLines(content);
-		//console.log("lines set");
 	}
 
 	async run() {
 		while (1) {
 			await this.refresh();
+
+			//console.log("awaiting...");
 			await this.refreshPromise;
 		}
 	}
 }
 
-export async function createUiDevice({masterDevice, nodeId, element}) {
-	let uiDevice=new UiDevice({nodeId,element});
-	masterDevice.addDevice(uiDevice.remoteDevice);
-	//await uiDevice.remoteDevice.awaitState("operational");
-	await uiDevice.init();
-
-	uiDevice.run();
-
+export function createUiDevice(element) {
+	let uiDevice=new UiDevice(element);
 	return uiDevice;
 }

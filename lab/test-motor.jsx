@@ -1,4 +1,6 @@
-import {openSlcanBus, RemoteDevice, MasterDevice} from "canopener";
+import {MasterDevice} from "canopener";
+import * as canopener from "canopener";
+
 import {createUiDevice, useEncoder, useEncoderButton, useClampedEncoder,
 		useRef, Menu, useBack, useEncoderDelta} from "../api/exports.js";
 
@@ -57,16 +59,23 @@ function App({motor}) {
 }
 
 async function run() {
-	//let bus=await openSlcanBus({path: "/dev/ttyACM0", baudRate: 115200});
-	//let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:E4", baudRate: 115200}); // motor
-	let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:D0", baudRate: 115200}); // ui
-	//let bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:91:F1:F0", baudRate: 115200}); // brain
+	let bus;
+	if (global.canBus) {
+		bus=global.canBus;
+	}
 
+	else {
+		let co=canopener;
+		//bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:E4", baudRate: 115200}); // motor
+		bus=await co.openSlcanBus({path: "/dev/ttyESP-50:78:7D:8F:D7:D0", baudRate: 115200}); // ui
+		//bus=await openSlcanBus({path: "/dev/ttyESP-50:78:7D:91:F1:F0", baudRate: 115200}); // brain
+	}
 
 	let masterDevice=new MasterDevice({bus});
+	let motor=masterDevice.createRemoteDevice(5);
+	let uiDevice=masterDevice.createRemoteDevice(6);
 
-	let motor=new RemoteDevice({nodeId: 5});
-	masterDevice.addDevice(motor);
+	await motor.awaitState("operational");
 
 	let targetPosition=motor.entry(0x607A,0x00).setType("int32");
 	let actualPosition=motor.entry(0x6064,0x00).setType("int32");
@@ -84,9 +93,12 @@ async function run() {
 	targetPosition.set(0);
 	await motor.flush();
 
-	let ui=await createUiDevice({masterDevice, nodeId: 6, element: <App motor={motor}/>});
+	await uiDevice.awaitState("operational");
 
-	console.log("Motor UI Started...");
+	let ui=createUiDevice(<App motor={motor}/>);
+	await ui.setRemoteDevice(uiDevice);
+
+	console.log("Motor UI initialized...");
 }
 
 run();
