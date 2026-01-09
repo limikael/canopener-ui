@@ -83,6 +83,9 @@ function App2({motor}) {
 }
 
 async function run() {
+	if (global.digitalWrite)
+		global.digitalWrite(8,0);
+
 	let bus;
 	if (global.canBus) {
 		bus=global.canBus;
@@ -100,6 +103,8 @@ async function run() {
 	let motor=masterDevice.createRemoteDevice(5);
 
 	await motor.awaitState("operational");
+	if (global.gc)
+		global.gc();
 
 	let targetPosition=motor.entry(0x607A,0x00).setType("int32");
 	let actualPosition=motor.entry(0x6064,0x00).setType("int32");
@@ -113,18 +118,33 @@ async function run() {
 	control.set(0x0f);
 	maxAccel.set(10000);
 	maxDecel.set(10000);
-	maxVel.set(16000);
+	maxVel.set(20000);
 	targetPosition.set(0);
 	await motor.flush();
+	if (global.gc)
+		global.gc();
+
 	console.log("Motor initialized..");
 
+	await new Promise(r=>setTimeout(r,1000));
+
 	await uiDevice.awaitState("operational");
+	if (global.gc)
+		global.gc();
 
 	//let ui=createUiDevice(<App motor={motor}/>);
 	let ui=createUiDevice(<App2 motor={motor}/>);
 	await ui.setRemoteDevice(uiDevice);
+	if (global.gc)
+		global.gc();
 
 	console.log("Motor UI initialized..");
+	if (global.digitalWrite)
+		global.digitalWrite(8,1);
 }
 
-run();
+/*if (global.waitFor)
+	waitFor(run);
+
+else*/
+	run();

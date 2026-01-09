@@ -29,6 +29,9 @@ function App() {
 }
 
 async function run() {
+	if (global.digitalWrite)
+		global.digitalWrite(8,0);
+
 	let bus;
 	if (global.canBus) {
 		bus=global.canBus;
@@ -47,6 +50,13 @@ async function run() {
 	await ui.setRemoteDevice(uiDevice);
 
 	console.log("UI Started...");
+	if (global.digitalWrite)
+		global.digitalWrite(8,1);
+
 }
 
-run();
+if (global.waitFor)
+	waitFor(run);
+
+else
+	run();
